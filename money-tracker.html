@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>แอปบันทึกรายรับรายจ่าย (เวอร์ชันเต็ม)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .app-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 20px 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.6rem;
+      color: #111827;
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      flex: 1 1 150px;
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 12px 16px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .summary-card h3 {
+      margin: 0 0 4px;
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+
+    .summary-card p {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .summary-income p { color: #16a34a; }
+    .summary-expense p { color: #dc2626; }
+    .summary-balance p { color: #2563eb; }
+
+    .accounts-summary {
+      margin-bottom: 20px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      font-size: 0.9rem;
+    }
+
+    .accounts-summary h3 {
+      margin-top: 0;
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+
+    .accounts-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
+
+    .account-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      font-size: 0.85rem;
+    }
+
+    .account-pill span {
+      font-weight: 600;
+      color: #111827;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: #374151;
+    }
+
+    input[type="date"],
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px #bfdbfe;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .btn-primary {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.05s ease, background 0.15s ease;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .btn-small {
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      border-radius: 999px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .btn-small:hover {
+      background: #e5e7eb;
+    }
+
+    .danger {
+      color: #b91c1c;
+      border-color: #fecaca;
+      background: #fef2f2;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #4b5563;
+    }
+
+    tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    .type-income {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .type-expense {
+      color: #dc2626;
+      font-weight: 600;
+    }
+
+    .amount {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .actions {
+      text-align: center;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chart-container {
+      margin-bottom: 20px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .chart-container h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      color: #4b5563;
+    }
+
+    @media (max-width: 700px) {
+      body {
+        padding: 10px;
+      }
+
+      .app-container {
+        padding: 14px 12px;
+      }
+
+      th:nth-child(3),
+      td:nth-child(3) {
+        display: none; /* ซ่อนบัญชีบนจอเล็ก */
+      }
+    }
+  </style>
+
+  <!-- โหลด Chart.js จาก CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <h1>แอปบันทึกรายรับ–รายจ่าย</h1>
+
+    <!-- สรุปรวม -->
+    <div class="summary">
+      <div class="summary-card summary-income">
+        <h3>รายรับรวม</h3>
+        <p id="total-income">0 ฿</p>
+      </div>
+      <div class="summary-card summary-expense">
+        <h3>รายจ่ายรวม</h3>
+        <p id="total-expense">0 ฿</p>
+      </div>
+      <div class="summary-card summary-balance">
+        <h3>คงเหลือรวม</h3>
+        <p id="balance">0 ฿</p>
+      </div>
+    </div>
+
+    <!-- สรุปต่อบัญชี -->
+    <div class="accounts-summary">
+      <h3>ยอดคงเหลือแต่ละบัญชี</h3>
+      <div class="accounts-list" id="accounts-list">
+        <!-- เติมโดย JS -->
+      </div>
+    </div>
+
+    <!-- กราฟ -->
+    <div class="chart-container">
+      <h3>กราฟรายรับ–รายจ่ายรายเดือน</h3>
+      <canvas id="monthlyChart" height="120"></canvas>
+    </div>
+
+    <!-- ฟอร์มเพิ่มรายการ -->
+    <form id="transaction-form">
+      <div>
+        <label for="date">วันที่</label>
+        <input type="date" id="date" required>
+      </div>
+
+      <div>
+        <label for="type">ประเภท</label>
+        <select id="type" required>
+          <option value="income">รายรับ</option>
+          <option value="expense">รายจ่าย</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="account">บัญชี</label>
+        <select id="account">
+          <option value="เงินสด">เงินสด</option>
+          <option value="TrueMoney">TrueMoney</option>
+          <option value="ธนาคาร">ธนาคาร</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="category">หมวดหมู่</label>
+        <input type="text" id="category" placeholder="เช่น เงินเดือน, อาหาร, เดินทาง">
+      </div>
+
+      <div>
+        <label for="amount">จำนวนเงิน (บาท)</label>
+        <input type="number" id="amount" required min="0" step="0.01" placeholder="0.00">
+      </div>
+
+      <div class="full-width">
+        <label for="note">หมายเหตุ</label>
+        <input type="text" id="note" placeholder="เช่น กินข้าวกับเพื่อน, รับเงินพิเศษ">
+      </div>
+
+      <div class="full-width" style="text-align: right;">
+        <button type="submit" class="btn-primary">เพิ่มรายการ</button>
+      </div>
+    </form>
+
+    <!-- แถบเครื่องมือด้านบนตาราง -->
+    <div class="top-bar">
+      <div class="filter-group">
+        <select id="filter-type">
+          <option value="all">ทุกประเภท</option>
+          <option value="income">เฉพาะรายรับ</option>
+          <option value="expense">เฉพาะรายจ่าย</option>
+        </select>
+
+        <select id="filter-account">
+          <option value="all">ทุกบัญชี</option>
+          <option value="เงินสด">เงินสด</option>
+          <option value="TrueMoney">TrueMoney</option>
+          <option value="ธนาคาร">ธนาคาร</option>
+        </select>
+
+        <button id="btn-clear-filter" class="btn-small">ล้างตัวกรอง</button>
+      </div>
+
+      <button id="btn-clear-all" class="btn-small danger">ลบข้อมูลทั้งหมด</button>
+    </div>
+
+    <!-- ตารางรายการ -->
+    <table>
+      <thead>
+        <tr>
+          <th>วันที่</th>
+          <th>หมวดหมู่</th>
+          <th>บัญชี</th>
+          <th>ประเภท</th>
+          <th>จำนวนเงิน</th>
+          <th>หมายเหตุ</th>
+          <th>จัดการ</th>
+        </tr>
+      </thead>
+      <tbody id="transaction-body">
+        <!-- แสดงรายการที่นี่ด้วย JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'money-tracker-advanced-v1';
+
+    function loadTransactions() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return [];
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        console.error('อ่านข้อมูลไม่ได้:', e);
+        return [];
+      }
+    }
+
+    function saveTransactions(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+
+    let transactions = loadTransactions();
+
+    const form = document.getElementById('transaction-form');
+    const tbody = document.getElementById('transaction-body');
+    const totalIncomeEl = document.getElementById('total-income');
+    const totalExpenseEl = document.getElementById('total-expense');
+    const balanceEl = document.getElementById('balance');
+    const filterTypeEl = document.getElementById('filter-type');
+    const filterAccountEl = document.getElementById('filter-account');
+    const btnClearFilter = document.getElementById('btn-clear-filter');
+    const btnClearAll = document.getElementById('btn-clear-all');
+    const accountsListEl = document.getElementById('accounts-list');
+
+    const dateInput = document.getElementById('date');
+    dateInput.valueAsNumber = Date.now() - (new Date()).getTimezoneOffset() * 60000;
+
+    let monthlyChart = null;
+
+    function formatMoney(num) {
+      return Number(num).toLocaleString('th-TH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) + ' ฿';
+    }
+
+    function calcAccountsSummary(list) {
+      const result = {};
+      list.forEach(tx => {
+        const acc = tx.account || 'ไม่ระบุ';
+        if (!result[acc]) result[acc] = 0;
+        const sign = tx.type === 'income' ? 1 : -1;
+        result[acc] += sign * tx.amount;
+      });
+      return result;
+    }
+
+    function buildMonthlyStats(list) {
+      const stats = {};
+      list.forEach(tx => {
+        if (!tx.date) return;
+        const month = tx.date.slice(0, 7);
+        if (!stats[month]) {
+          stats[month] = { income: 0, expense: 0 };
+        }
+        if (tx.type === 'income') stats[month].income += tx.amount;
+        else stats[month].expense += tx.amount;
+      });
+
+      const labels = Object.keys(stats).sort();
+      const incomeData = labels.map(m => stats[m].income);
+      const expenseData = labels.map(m => stats[m].expense);
+
+      return { labels, incomeData, expenseData };
+    }
+
+    function renderAccountsSummary() {
+      const summary = calcAccountsSummary(transactions);
+      accountsListEl.innerHTML = '';
+
+      if (Object.keys(summary).length === 0) {
+        accountsListEl.textContent = 'ยังไม่มีข้อมูลบัญชี';
+        return;
+      }
+
+      Object.entries(summary).forEach(([acc, balance]) => {
+        const div = document.createElement('div');
+        div.className = 'account-pill';
+        div.innerHTML = `<span>${acc}</span> : ${formatMoney(balance)}`;
+        accountsListEl.appendChild(div);
+      });
+    }
+
+    function renderChart() {
+      const canvas = document.getElementById('monthlyChart');
+      const ctx = canvas.getContext('2d');
+
+      const { labels, incomeData, expenseData } = buildMonthlyStats(transactions);
+
+      if (monthlyChart) {
+        monthlyChart.destroy();
+      }
+
+      monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'รายรับ',
+              data: incomeData,
+            },
+            {
+              label: 'รายจ่าย',
+              data: expenseData,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function render() {
+      const filterType = filterTypeEl.value;
+      const filterAccount = filterAccountEl.value;
+
+      tbody.innerHTML = '';
+
+      let totalIncome = 0;
+      let totalExpense = 0;
+
+      transactions.forEach((tx, index) => {
+        if (filterType !== 'all' && tx.type !== filterType) return;
+        if (filterAccount !== 'all' && (tx.account || 'ไม่ระบุ') !== filterAccount) return;
+
+        if (tx.type === 'income') totalIncome += tx.amount;
+        else totalExpense += tx.amount;
+
+        const tr = document.createElement('tr');
+
+        const tdDate = document.createElement('td');
+        tdDate.textContent = tx.date || '-';
+
+        const tdCategory = document.createElement('td');
+        tdCategory.textContent = tx.category || '-';
+
+        const tdAccount = document.createElement('td');
+        tdAccount.textContent = tx.account || 'ไม่ระบุ';
+
+        const tdType = document.createElement('td');
+        tdType.textContent = tx.type === 'income' ? 'รายรับ' : 'รายจ่าย';
+        tdType.className = tx.type === 'income' ? 'type-income' : 'type-expense';
+
+        const tdAmount = document.createElement('td');
+        tdAmount.textContent = formatMoney(tx.amount);
+        tdAmount.className = 'amount';
+
+        const tdNote = document.createElement('td');
+        tdNote.textContent = tx.note || '';
+
+        const tdActions = document.createElement('td');
+        tdActions.className = 'actions';
+
+        const btnDelete = document.createElement('button');
+        btnDelete.textContent = 'ลบ';
+        btnDelete.className = 'btn-small danger';
+        btnDelete.onclick = () => {
+          if (confirm('ต้องการลบรายการนี้หรือไม่?')) {
+            transactions.splice(index, 1);
+            saveTransactions(transactions);
+            render();
+          }
+        };
+
+        tdActions.appendChild(btnDelete);
+
+        tr.appendChild(tdDate);
+        tr.appendChild(tdCategory);
+        tr.appendChild(tdAccount);
+        tr.appendChild(tdType);
+        tr.appendChild(tdAmount);
+        tr.appendChild(tdNote);
+        tr.appendChild(tdActions);
+
+        tbody.appendChild(tr);
+      });
+
+      totalIncomeEl.textContent = formatMoney(totalIncome);
+      totalExpenseEl.textContent = formatMoney(totalExpense);
+      balanceEl.textContent = formatMoney(totalIncome - totalExpense);
+
+      renderAccountsSummary();
+      renderChart();
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const date = document.getElementById('date').value;
+      const type = document.getElementById('type').value;
+      const account = document.getElementById('account').value;
+      const category = document.getElementById('category').value.trim();
+      const amountStr = document.getElementById('amount').value;
+      const note = document.getElementById('note').value.trim();
+      const amount = parseFloat(amountStr);
+
+      if (!date || isNaN(amount) || amount <= 0) {
+        alert('กรุณากรอกวันที่และจำนวนเงินให้ถูกต้อง');
+        return;
+      }
+
+      transactions.push({
+        date,
+        type,
+        account,
+        category,
+        amount,
+        note
+      });
+
+      saveTransactions(transactions);
+      form.reset();
+      dateInput.valueAsNumber = Date.now() - (new Date()).getTimezoneOffset() * 60000;
+      render();
+    });
+
+    btnClearFilter.addEventListener('click', () => {
+      filterTypeEl.value = 'all';
+      filterAccountEl.value = 'all';
+      render();
+    });
+
+    filterTypeEl.addEventListener('change', render);
+    filterAccountEl.addEventListener('change', render);
+
+    btnClearAll.addEventListener('click', () => {
+      if (transactions.length === 0) {
+        alert('ยังไม่มีข้อมูลให้ลบ');
+        return;
+      }
+      if (confirm('ลบข้อมูลทั้งหมดออกจากเครื่องนี้จริง ๆ ใช่ไหม?')) {
+        transactions = [];
+        saveTransactions(transactions);
+        render();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
